@@ -33,7 +33,6 @@ def get_latest_release_from_speficic_odoo_version(releases_data: Any, current_ve
             if item['tag_name'].startswith(f'v{current_version[0]}')
         ]
     )
-    print(existing_releases)
     if existing_releases:
         return existing_releases[-1]
     else:
