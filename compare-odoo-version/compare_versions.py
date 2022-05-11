@@ -23,7 +23,7 @@ def get_repo_name() -> str:
     return repo_name
 
 
-def get_manifest_path(repo_name: str) -> Path:
+def get_manifest_path() -> Path:
     module_path = os.getenv('MODULE_PATH')
     if module_path is None:
         module_path = os.environ['GITHUB_WORKSPACE']
@@ -75,7 +75,7 @@ def get_new_version(current_version: Tuple[int, ...], latest_release: str) -> Op
 
 if __name__ == '__main__':
     repo_name = get_repo_name()
-    manifest_path = get_manifest_path(repo_name)
+    manifest_path = get_manifest_path()
     current_version = get_current_version_from_manifest(manifest_path)
     latest_release = get_latest_release_from_speficic_odoo_version(get_releases_data(repo_name), current_version)
     new_version = get_new_version(current_version, latest_release)
