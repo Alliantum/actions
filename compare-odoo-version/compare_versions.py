@@ -26,7 +26,7 @@ def get_repo_name() -> str:
 def get_manifest_path(repo_name: str) -> Path:
     module_path = os.getenv('MODULE_PATH')
     if module_path is None:
-        module_path = f'{os.environ["GITHUB_WORKSPACE"]}/{repo_name}'
+        module_path = os.environ['GITHUB_WORKSPACE']
     return Path(module_path).resolve().joinpath('__manifest__.py')
 
 
