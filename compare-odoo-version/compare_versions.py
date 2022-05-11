@@ -54,7 +54,7 @@ def get_latest_release_from_speficic_odoo_version(releases_data: Any, current_ve
 
 
 def get_new_version(current_version: Tuple[int, ...], latest_release: str) -> Optional[str]:
-    new_version = 'v' + '.'.join(map(str, (i for i in current_version)))
+    new_version = f'v{".".join(map(str, (i for i in current_version)))}'
     new_release_flag = False
     if latest_release != '':
         latest_release_tuple = tuple(map(int, latest_release.lower().strip('v').split('.')))
