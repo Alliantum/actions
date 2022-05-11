@@ -2,23 +2,29 @@ import json
 import os
 import urllib.request
 from ast import literal_eval
+from pathlib import Path
+from typing import Any
+from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import List
-from typing import Any
 
 # NOTE: we expect the `release` key to have this format: `12.0.1.2.3`
 # odoo_version.semver
 
+GITHUB_API_URL = os.environ['GITHUB_API_URL']
+GITHUB_REPOSITORY = os.environ['GITHUB_REPOSITORY']
+GITHUB_WORKSPACE = os.environ['GITHUB_WORKSPACE']
+BASE_PATH = Path(GITHUB_WORKSPACE).resolve()
+MANIFEST_FILE_NAME = '__manifest__.py'
+
 
 def get_current_version_from_manifest() -> Tuple[int, ...]:
-    with open(f'{os.environ["GITHUB_WORKSPACE"]}/__manifest__.py', 'r') as f:
+    with open(BASE_PATH / MANIFEST_FILE_NAME, 'r') as f:
         return tuple(map(int, literal_eval(f.read())['version'].split('.')))
 
 
 def get_releases_data() -> Any:
-    url = f'https://api.github.com/repos/{os.environ["GITHUB_REPOSITORY"]}/releases'
-    req = urllib.request.Request(url)
+    req = urllib.request.Request(f'{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/releases')
     req.add_header('Accept', 'application/vnd.github.v3+json')
     req.add_header('Authorization', f'Bearer {os.environ["GITHUB_TOKEN"]}')
     with urllib.request.urlopen(req) as f:
@@ -27,11 +33,7 @@ def get_releases_data() -> Any:
 
 def get_latest_release_from_speficic_odoo_version(releases_data: Any, current_version: Tuple[int, ...]) -> str:
     existing_releases: List[str] = sorted(
-        [
-            item['tag_name']
-            for item in releases_data
-            if item['tag_name'].startswith(f'v{current_version[0]}')
-        ]
+        [item['tag_name'] for item in releases_data if item['tag_name'].startswith(f'v{current_version[0]}')],
     )
     if existing_releases:
         return existing_releases[-1]
