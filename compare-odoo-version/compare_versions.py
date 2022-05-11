@@ -13,18 +13,30 @@ from typing import Tuple
 
 GITHUB_API_URL = os.environ['GITHUB_API_URL']
 GITHUB_REPOSITORY = os.environ['GITHUB_REPOSITORY']
-GITHUB_WORKSPACE = os.environ['GITHUB_WORKSPACE']
-BASE_PATH = Path(GITHUB_WORKSPACE).resolve()
-MANIFEST_FILE_NAME = '__manifest__.py'
+GITHUB_REPOSITORY_OWNER = os.environ['GITHUB_REPOSITORY_OWNER']
 
 
-def get_current_version_from_manifest() -> Tuple[int, ...]:
-    with open(BASE_PATH / MANIFEST_FILE_NAME, 'r') as f:
+def get_repo_name() -> str:
+    repo_name = os.getenv('MODULE_NAME')
+    if repo_name is None:
+        repo_name = GITHUB_REPOSITORY.replace(f'{GITHUB_REPOSITORY_OWNER}/', '')
+    return repo_name
+
+
+def get_manifest_path(repo_name: str) -> Path:
+    module_path = os.getenv('MODULE_PATH')
+    if module_path is None:
+        module_path = f'{os.environ["GITHUB_WORKSPACE"]}/{repo_name}'
+    return Path(module_path).resolve().joinpath('__manifest__.py')
+
+
+def get_current_version_from_manifest(manifest_path: Path) -> Tuple[int, ...]:
+    with open(manifest_path, 'r') as f:
         return tuple(map(int, literal_eval(f.read())['version'].split('.')))
 
 
-def get_releases_data() -> Any:
-    req = urllib.request.Request(f'{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/releases')
+def get_releases_data(repo_name: str) -> Any:
+    req = urllib.request.Request(f'{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY_OWNER}/{repo_name}/releases')
     req.add_header('Accept', 'application/vnd.github.v3+json')
     req.add_header('Authorization', f'Bearer {os.environ["GITHUB_TOKEN"]}')
     with urllib.request.urlopen(req) as f:
@@ -62,8 +74,10 @@ def get_new_version(current_version: Tuple[int, ...], latest_release: str) -> Op
 
 
 if __name__ == '__main__':
-    current_version = get_current_version_from_manifest()
-    latest_release = get_latest_release_from_speficic_odoo_version(get_releases_data(), current_version)
+    repo_name = get_repo_name()
+    manifest_path = get_manifest_path(repo_name)
+    current_version = get_current_version_from_manifest(manifest_path)
+    latest_release = get_latest_release_from_speficic_odoo_version(get_releases_data(repo_name), current_version)
     new_version = get_new_version(current_version, latest_release)
     if new_version is not None:
         os.system(f'echo "::set-output name=new-version::{new_version}"')
