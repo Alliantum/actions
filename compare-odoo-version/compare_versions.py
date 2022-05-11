@@ -16,11 +16,11 @@ GITHUB_REPOSITORY = os.environ['GITHUB_REPOSITORY']
 GITHUB_REPOSITORY_OWNER = os.environ['GITHUB_REPOSITORY_OWNER']
 
 
-def get_repo_name() -> str:
+def get_repository() -> str:
     repo_name = os.getenv('MODULE_NAME')
-    if repo_name is None:
-        repo_name = GITHUB_REPOSITORY.replace(f'{GITHUB_REPOSITORY_OWNER}/', '')
-    return repo_name
+    if repo_name is not None:
+        return f'{GITHUB_REPOSITORY_OWNER}/{repo_name}'
+    return GITHUB_REPOSITORY
 
 
 def get_manifest_path() -> Path:
@@ -35,8 +35,8 @@ def get_current_version_from_manifest(manifest_path: Path) -> Tuple[int, ...]:
         return tuple(map(int, literal_eval(f.read())['version'].split('.')))
 
 
-def get_releases_data(repo_name: str) -> Any:
-    req = urllib.request.Request(f'{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY_OWNER}/{repo_name}/releases')
+def get_releases_data(repository: str) -> Any:
+    req = urllib.request.Request(f'{GITHUB_API_URL}/repos/{repository}/releases')
     req.add_header('Accept', 'application/vnd.github.v3+json')
     req.add_header('Authorization', f'Bearer {os.environ["GITHUB_TOKEN"]}')
     with urllib.request.urlopen(req) as f:
@@ -74,10 +74,10 @@ def get_new_version(current_version: Tuple[int, ...], latest_release: str) -> Op
 
 
 if __name__ == '__main__':
-    repo_name = get_repo_name()
+    repository = get_repository()
     manifest_path = get_manifest_path()
     current_version = get_current_version_from_manifest(manifest_path)
-    latest_release = get_latest_release_from_speficic_odoo_version(get_releases_data(repo_name), current_version)
+    latest_release = get_latest_release_from_speficic_odoo_version(get_releases_data(repository), current_version)
     new_version = get_new_version(current_version, latest_release)
     if new_version is not None:
         os.system(f'echo "::set-output name=new-version::{new_version}"')
