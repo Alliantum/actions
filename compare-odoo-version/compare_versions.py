@@ -23,7 +23,6 @@ def get_manifest_path() -> Path:
 
 
 def get_current_version_from_manifest(manifest_path: Path) -> Tuple[int, ...]:
-    print(manifest_path)
     with open(manifest_path, 'r') as f:
         return tuple(map(int, literal_eval(f.read())['version'].split('.')))
 
@@ -44,9 +43,7 @@ def get_latest_release_from_speficic_odoo_version(releases_data: Any, current_ve
     existing_releases: List[str] = sorted(
         [item['tag_name'] for item in releases_data if item['tag_name'].startswith(release_string)],
     )
-    print(existing_releases)
     if existing_releases:
-        print(existing_releases[-1])
         return existing_releases[-1]
     else:
         return ''
