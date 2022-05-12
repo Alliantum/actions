@@ -1,9 +1,6 @@
 name: "Compare Odoo version"
 description: "Compare the version from the manifest with the latest release"
-outputs:
-  new-version:
-    description: "New release version. Can be null"
-    value: ${{ steps.compare-versions.outputs.new-version }}
+
 runs:
   using: "composite"
   steps:
@@ -11,3 +8,8 @@ runs:
       name: Compare current version with latest release
       run: python3 ${{ github.action_path }}/compare_versions.py
       shell: bash
+
+outputs:
+  new-version:
+    description: "New release version. Can be null"
+    value: ${{ steps.compare-versions.outputs.new-version }}
